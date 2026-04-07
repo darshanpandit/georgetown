@@ -13,7 +13,10 @@
 
   <div id="molecule-container"></div>
 
+  <div id="stats-panel" class="stats-panel"></div>
+
   <div class="data-controls">
+    <button id="btn-stats" onclick="StatsPanel.toggle()">Stats</button>
     <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
     <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
   </div>
@@ -31,6 +34,7 @@
   <script src="js/travel-molecule-data.js"></script>
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
+  <script src="js/stats-panel.js"></script>
   <script>
     /* ── Toast notification helper ── */
     function showToast(message, type) {
@@ -120,6 +124,7 @@
             if (json.nodes && json.links) {
               switchDataset(json);
               buildLegend(json);
+              StatsPanel.update(json);
               showToast("Loaded " + files[0].name, "success");
             } else {
               showToast("JSON must contain nodes and links arrays", "error");
@@ -168,6 +173,7 @@
             var dataset = parseCsvToDataset(modes, chains);
             switchDataset(dataset);
             buildLegend(dataset);
+            StatsPanel.update(dataset);
             showToast("Loaded CSV dataset (" + csvFiles.length + " files)", "success");
           });
         });
@@ -186,24 +192,28 @@
         loadJsonUrl(params.data, function (json) {
           initMolecule("molecule-container", json);
           buildLegend(json);
+          StatsPanel.update(json);
         });
       } else if (params.modes && params.chains) {
         // ?modes=path/to/modes.csv&chains=path/to/chains.csv — load custom CSVs
         loadCsvDataset(params.modes, params.chains, function (dataset) {
           initMolecule("molecule-container", dataset);
           buildLegend(dataset);
+          StatsPanel.update(dataset);
         });
       } else if (params.source === "csv") {
         // ?source=csv — load from data/ directory CSV files
         loadCsvDataset("data/modes.csv", "data/chains.csv", function (dataset) {
           initMolecule("molecule-container", dataset);
           buildLegend(dataset);
+          StatsPanel.update(dataset);
         });
       } else {
         // Default: use hardcoded data
         var defaultData = initialView === "activity" ? ACTIVITY_MOLECULE_DATA : MODE_MOLECULE_DATA;
         initMolecule("molecule-container", defaultData);
         buildLegend(defaultData);
+        StatsPanel.update(defaultData);
 
         // ?view=activity — start on activity view
         if (initialView === "activity") {
@@ -219,6 +229,7 @@
       var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
       switchDataset(data);
       buildLegend(data);
+      StatsPanel.update(data);
 
       document.getElementById("btn-mode").className =
         "toggle-btn" + (view === "mode" ? " active" : "");

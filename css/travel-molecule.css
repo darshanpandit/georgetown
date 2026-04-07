@@ -224,6 +224,85 @@ svg {
 .toast.error { border-color: #ef4444; }
 .toast.success { border-color: #34d399; }
 
+/* ── Stats Panel ── */
+.stats-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: rgba(10, 18, 40, 0.88);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 150;
+  overflow-y: auto;
+  padding: 20px 16px;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+.stats-panel.open {
+  transform: translateX(0);
+}
+
+.sp-section {
+  margin-bottom: 16px;
+}
+
+.sp-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.sp-sublabel {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 4px;
+}
+
+.sp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 2px 0;
+  font-size: 0.78rem;
+}
+
+.sp-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sp-value {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+}
+
+#btn-stats {
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 6px;
+}
+#btn-stats:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+#btn-stats.active {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }
