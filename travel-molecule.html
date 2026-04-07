@@ -15,8 +15,11 @@
 
   <div id="stats-panel" class="stats-panel"></div>
 
+  <div id="filter-panel" class="filter-panel"></div>
+
   <div class="data-controls">
     <button id="btn-stats" onclick="StatsPanel.toggle()">Stats</button>
+    <button class="filter-btn" id="btn-filter">Filter</button>
     <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
     <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
   </div>
@@ -42,6 +45,7 @@
   <script src="js/travel-molecule-data.js"></script>
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
+  <script src="js/filter-controls.js"></script>
   <script src="js/stats-panel.js"></script>
   <script src="js/demographics.js"></script>
   <script>
