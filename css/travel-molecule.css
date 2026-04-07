@@ -181,6 +181,49 @@ svg {
   letter-spacing: 0.04em;
 }
 
+/* ── Data controls ── */
+.data-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.data-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.data-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(10, 18, 40, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  transition: transform 0.3s ease;
+  z-index: 200;
+}
+.toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+.toast.error { border-color: #ef4444; }
+.toast.success { border-color: #34d399; }
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }

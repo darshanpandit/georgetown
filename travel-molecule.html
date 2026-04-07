@@ -32,9 +32,187 @@
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
   <script>
+    /* ── Toast notification helper ── */
+    function showToast(message, type) {
+      var toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast " + (type || "success") + " visible";
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(function () {
+        toast.className = "toast";
+      }, 3000);
+    }
+
+    /* ── URL parameter handling ── */
+    function getUrlParams() {
+      var params = {};
+      var search = window.location.search.substring(1);
+      if (!search) return params;
+      search.split("&").forEach(function (pair) {
+        var kv = pair.split("=");
+        params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || "");
+      });
+      return params;
+    }
+
+    function loadJsonUrl(url, callback) {
+      d3.json(url, function (error, json) {
+        if (error) {
+          showToast("Failed to load JSON from URL", "error");
+          return;
+        }
+        callback(json);
+        showToast("Loaded dataset from URL", "success");
+      });
+    }
+
+    function loadCsvDataset(modesUrl, chainsUrl, callback) {
+      d3.csv(modesUrl, function (error, modes) {
+        if (error) {
+          showToast("Failed to load modes CSV", "error");
+          return;
+        }
+        d3.csv(chainsUrl, function (error2, chains) {
+          if (error2) {
+            showToast("Failed to load chains CSV", "error");
+            return;
+          }
+          var dataset = parseCsvToDataset(modes, chains);
+          callback(dataset);
+          showToast("Loaded CSV dataset", "success");
+        });
+      });
+    }
+
+    function parseCsvToDataset(modes, chains) {
+      var nodes = modes.map(function (row) {
+        return {
+          id: row.id || row.mode || row.name,
+          label: row.label || row.mode || row.name,
+          share: parseFloat(row.share) || 0,
+          color: row.color || "#888"
+        };
+      });
+      var links = chains.map(function (row) {
+        return {
+          source: row.source || row.from,
+          target: row.target || row.to,
+          value: parseFloat(row.value || row.weight) || 1
+        };
+      });
+      return { nodes: nodes, links: links };
+    }
+
+    /* ── File upload handling ── */
+    document.getElementById("btn-load").addEventListener("click", function () {
+      document.getElementById("file-input").click();
+    });
+
+    document.getElementById("file-input").addEventListener("change", function (e) {
+      var files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      if (files.length === 1 && files[0].name.match(/\.json$/i)) {
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            var json = JSON.parse(evt.target.result);
+            if (json.nodes && json.links) {
+              switchDataset(json);
+              buildLegend(json);
+              showToast("Loaded " + files[0].name, "success");
+            } else {
+              showToast("JSON must contain nodes and links arrays", "error");
+            }
+          } catch (err) {
+            showToast("Invalid JSON file", "error");
+          }
+        };
+        reader.readAsText(files[0]);
+      } else {
+        // Handle CSV files — match by filename pattern
+        var csvFiles = Array.prototype.slice.call(files).filter(function (f) {
+          return f.name.match(/\.csv$/i);
+        });
+        if (csvFiles.length === 0) {
+          showToast("Unrecognized file format. Use .csv or .json", "error");
+          return;
+        }
+        var modesFile = null;
+        var chainsFile = null;
+        csvFiles.forEach(function (f) {
+          var name = f.name.toLowerCase();
+          if (name.indexOf("mode") !== -1 || name.indexOf("node") !== -1) {
+            modesFile = f;
+          } else if (name.indexOf("chain") !== -1 || name.indexOf("link") !== -1 || name.indexOf("edge") !== -1) {
+            chainsFile = f;
+          } else if (name.indexOf("activit") !== -1) {
+            modesFile = modesFile || f;
+          }
+        });
+        if (!modesFile || !chainsFile) {
+          if (csvFiles.length === 1) {
+            showToast("Need both nodes and links CSVs (found 1 file)", "error");
+          } else {
+            showToast("Could not match CSV files. Name them with 'modes'/'chains'", "error");
+          }
+          return;
+        }
+        var readCsvFile = function (file, cb) {
+          var r = new FileReader();
+          r.onload = function (evt) { cb(d3.csvParse(evt.target.result)); };
+          r.readAsText(file);
+        };
+        readCsvFile(modesFile, function (modes) {
+          readCsvFile(chainsFile, function (chains) {
+            var dataset = parseCsvToDataset(modes, chains);
+            switchDataset(dataset);
+            buildLegend(dataset);
+            showToast("Loaded CSV dataset (" + csvFiles.length + " files)", "success");
+          });
+        });
+      }
+      // Reset input so the same file can be re-selected
+      e.target.value = "";
+    });
+
+    /* ── Initialization ── */
     document.addEventListener("DOMContentLoaded", function () {
-      initMolecule("molecule-container", MODE_MOLECULE_DATA);
-      buildLegend(MODE_MOLECULE_DATA);
+      var params = getUrlParams();
+      var initialView = params.view || "mode";
+
+      if (params.data) {
+        // ?data=url-to-json — load a complete JSON dataset
+        loadJsonUrl(params.data, function (json) {
+          initMolecule("molecule-container", json);
+          buildLegend(json);
+        });
+      } else if (params.modes && params.chains) {
+        // ?modes=path/to/modes.csv&chains=path/to/chains.csv — load custom CSVs
+        loadCsvDataset(params.modes, params.chains, function (dataset) {
+          initMolecule("molecule-container", dataset);
+          buildLegend(dataset);
+        });
+      } else if (params.source === "csv") {
+        // ?source=csv — load from data/ directory CSV files
+        loadCsvDataset("data/modes.csv", "data/chains.csv", function (dataset) {
+          initMolecule("molecule-container", dataset);
+          buildLegend(dataset);
+        });
+      } else {
+        // Default: use hardcoded data
+        var defaultData = initialView === "activity" ? ACTIVITY_MOLECULE_DATA : MODE_MOLECULE_DATA;
+        initMolecule("molecule-container", defaultData);
+        buildLegend(defaultData);
+
+        // ?view=activity — start on activity view
+        if (initialView === "activity") {
+          document.getElementById("btn-mode").className = "toggle-btn";
+          document.getElementById("btn-activity").className = "toggle-btn active";
+          document.getElementById("btn-mode").setAttribute("aria-pressed", "false");
+          document.getElementById("btn-activity").setAttribute("aria-pressed", "true");
+        }
+      }
     });
 
     function switchTo(view) {
