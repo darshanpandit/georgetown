@@ -721,10 +721,36 @@ kbd {
   font-size: 0.8rem;
 }
 
+/* ── Demographic Selector ── */
+.demo-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.demo-selector select {
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.demo-selector select:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.demo-selector select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.4);
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }
   .toggle-btn { padding: 6px 14px; font-size: 0.75rem; }
   .legend { font-size: 0.6rem; bottom: 60px; }
   .filter-panel { width: 200px; right: -220px; }
+  .demo-selector select { padding: 4px 8px; font-size: 0.7rem; }
 }
