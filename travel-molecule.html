@@ -232,10 +232,73 @@
       );
     }
 
+    /* ── Demographic selector helpers ── */
+    var currentView = "mode";
+
+    function initDemoSelector() {
+      Demographics.load().then(function () {
+        var dimSelect = document.getElementById("demo-dimension");
+        var dims = Demographics.getDimensions();
+        dims.forEach(function (d) {
+          var opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = Demographics.getDimensionLabel(d);
+          dimSelect.appendChild(opt);
+        });
+        if (currentView === "mode") {
+          document.getElementById("demo-selector").style.display = "flex";
+        }
+      }).catch(function (err) {
+        console.warn("Could not load demographics:", err);
+      });
+    }
+
+    function onDimensionChange() {
+      var dimSelect = document.getElementById("demo-dimension");
+      var catSelect = document.getElementById("demo-category");
+      var dimension = dimSelect.value;
+
+      if (!dimension) {
+        catSelect.style.display = "none";
+        catSelect.innerHTML = "";
+        var data = MODE_MOLECULE_DATA;
+        switchDataset(data);
+        buildLegend(data);
+        StatsPanel.update(data);
+        return;
+      }
+
+      var cats = Demographics.getCategories(dimension);
+      catSelect.innerHTML = "";
+      cats.forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        catSelect.appendChild(opt);
+      });
+      catSelect.style.display = "";
+      onCategoryChange();
+    }
+
+    function onCategoryChange() {
+      var dimension = document.getElementById("demo-dimension").value;
+      var category = document.getElementById("demo-category").value;
+      if (!dimension || !category) return;
+
+      var data = Demographics.buildMoleculeForCategory(dimension, category, MODE_MOLECULE_DATA);
+      switchDataset(data);
+      buildLegend(data);
+      StatsPanel.update(data);
+    }
+
+    document.getElementById("demo-dimension").addEventListener("change", onDimensionChange);
+    document.getElementById("demo-category").addEventListener("change", onCategoryChange);
+
     /* ── Initialization ── */
     document.addEventListener("DOMContentLoaded", function () {
       var params = getUrlParams();
       var initialView = params.view || "mode";
+      currentView = initialView;
 
       if (params.data) {
         // ?data=url-to-json — load a complete JSON dataset
@@ -277,6 +340,9 @@
           document.getElementById("btn-activity").setAttribute("aria-pressed", "true");
         }
       }
+
+      // Load demographic data and populate selector
+      initDemoSelector();
 
       /* ── Keyboard navigation ── */
       KeyboardNav.init(
@@ -377,6 +443,7 @@
     });
 
     function switchTo(view) {
+      currentView = view;
       var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
       switchDataset(data);
       buildLegend(data);
@@ -390,6 +457,21 @@
         "toggle-btn" + (view === "activity" ? " active" : "");
       document.getElementById("btn-mode").setAttribute("aria-pressed", view === "mode");
       document.getElementById("btn-activity").setAttribute("aria-pressed", view === "activity");
+
+      // Show demographic selector only for mode view
+      var demoSelector = document.getElementById("demo-selector");
+      if (view === "mode" && Demographics.data) {
+        demoSelector.style.display = "flex";
+      } else {
+        demoSelector.style.display = "none";
+      }
+
+      // Reset demographic dropdowns when switching views
+      if (view !== "mode") {
+        document.getElementById("demo-dimension").value = "";
+        document.getElementById("demo-category").style.display = "none";
+        document.getElementById("demo-category").innerHTML = "";
+      }
     }
 
     function buildLegend(data) {
