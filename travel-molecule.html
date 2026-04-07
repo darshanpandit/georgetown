@@ -37,6 +37,8 @@
     <div><kbd>/</kbd> Open search</div>
     <div><kbd>1</kbd> Mode Molecule view</div>
     <div><kbd>2</kbd> Activity Molecule view</div>
+    <div><kbd>3</kbd> Sankey Flow view</div>
+    <div><kbd>4</kbd> Chord Diagram view</div>
     <div><kbd>?</kbd> Toggle this help</div>
   </div>
 
@@ -45,6 +47,8 @@
   <div class="toggle-bar">
     <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')" aria-pressed="true">Mode Molecule</button>
     <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')" aria-pressed="false">Activity Molecule</button>
+    <button class="toggle-btn" id="btn-sankey" onclick="switchTo('sankey')" aria-pressed="false">Sankey Flow</button>
+    <button class="toggle-btn" id="btn-chord" onclick="switchTo('chord')" aria-pressed="false">Chord Diagram</button>
   </div>
 
   <div class="demo-selector" id="demo-selector" style="display:none">
@@ -61,6 +65,8 @@
   <script src="js/travel-molecule-data.js"></script>
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
+  <script src="js/sankey-view.js"></script>
+  <script src="js/chord-view.js"></script>
   <script src="js/filter-controls.js"></script>
   <script src="js/keyboard-nav.js"></script>
   <script src="js/stats-panel.js"></script>
@@ -443,20 +449,55 @@
     });
 
     function switchTo(view) {
+      var prevView = currentView;
       currentView = view;
-      var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
-      switchDataset(data);
-      buildLegend(data);
-      StatsPanel.update(data);
-      FilterControls.reset();
-      FilterControls.updateNodes(data);
 
-      document.getElementById("btn-mode").className =
-        "toggle-btn" + (view === "mode" ? " active" : "");
-      document.getElementById("btn-activity").className =
-        "toggle-btn" + (view === "activity" ? " active" : "");
-      document.getElementById("btn-mode").setAttribute("aria-pressed", view === "mode");
-      document.getElementById("btn-activity").setAttribute("aria-pressed", view === "activity");
+      // Destroy previous non-molecule views
+      if (prevView === "sankey") { SankeyView.destroy(); }
+      if (prevView === "chord") { ChordView.destroy(); }
+
+      // For molecule views, clear the container and re-init if coming from non-molecule
+      var container = document.getElementById("molecule-container");
+      var isMoleculeView = (view === "mode" || view === "activity");
+      var wasMoleculeView = (prevView === "mode" || prevView === "activity");
+
+      if (isMoleculeView) {
+        var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
+        if (!wasMoleculeView) {
+          // Coming from a non-molecule view: need to re-init the force graph
+          container.innerHTML = "";
+          initMolecule("molecule-container", data);
+        } else {
+          switchDataset(data);
+        }
+        buildLegend(data);
+        StatsPanel.update(data);
+        FilterControls.reset();
+        FilterControls.updateNodes(data);
+      } else if (view === "sankey") {
+        if (wasMoleculeView) {
+          // Clear molecule SVG first
+          container.innerHTML = "";
+        }
+        SankeyView.init("molecule-container", MODE_MOLECULE_DATA, ACTIVITY_MOLECULE_DATA);
+        buildLegend(MODE_MOLECULE_DATA);
+      } else if (view === "chord") {
+        if (wasMoleculeView) {
+          container.innerHTML = "";
+        }
+        ChordView.init("molecule-container", MODE_MOLECULE_DATA);
+        buildLegend(MODE_MOLECULE_DATA);
+      }
+
+      // Update toggle button states
+      var viewButtons = ["mode", "activity", "sankey", "chord"];
+      viewButtons.forEach(function (v) {
+        var btn = document.getElementById("btn-" + v);
+        if (btn) {
+          btn.className = "toggle-btn" + (v === view ? " active" : "");
+          btn.setAttribute("aria-pressed", v === view ? "true" : "false");
+        }
+      });
 
       // Show demographic selector only for mode view
       var demoSelector = document.getElementById("demo-selector");
@@ -466,7 +507,7 @@
         demoSelector.style.display = "none";
       }
 
-      // Reset demographic dropdowns when switching views
+      // Reset demographic dropdowns when switching away from mode view
       if (view !== "mode") {
         document.getElementById("demo-dimension").value = "";
         document.getElementById("demo-category").style.display = "none";

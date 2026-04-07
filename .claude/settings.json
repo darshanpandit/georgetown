@@ -7,9 +7,9 @@
           {
             "type": "agent",
             "if": "Bash(git commit:*)",
-            "prompt": "Review the staged changes (run `git diff --cached`) for bugs, security vulnerabilities, code quality issues, and style problems. If you find critical issues (bugs, security flaws, or broken logic), output JSON with decision: 'block' and reason explaining the problems. If the changes look acceptable (minor style issues are OK), output JSON with decision: 'allow'. Be pragmatic — only block for real problems, not nitpicks.",
-            "timeout": 120,
-            "statusMessage": "Reviewing code before commit..."
+            "prompt": "You are an independent code reviewer. Run `git diff --cached` to see all staged changes. Review them thoroughly for:\n1. Bugs and logical errors\n2. Security vulnerabilities (XSS, injection, unsafe eval, etc.)\n3. Broken references (functions called that don't exist, missing imports, wrong variable names)\n4. Data integrity issues (mismatched IDs, wrong field names between modules)\n5. Dead code or obviously incomplete implementations\n\nIf you find critical issues, output JSON: {\"decision\": \"block\", \"reason\": \"<specific issues found>\"}\nIf the code is acceptable (minor style issues are OK to pass), output JSON: {\"decision\": \"allow\", \"reason\": \"<brief summary of what was reviewed>\"}",
+            "timeout": 180,
+            "statusMessage": "Independent code review in progress..."
           }
         ]
       }
