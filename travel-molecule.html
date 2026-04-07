@@ -14,8 +14,8 @@
   <div id="molecule-container"></div>
 
   <div class="toggle-bar">
-    <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')">Mode Molecule</button>
-    <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')">Activity Molecule</button>
+    <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')" aria-pressed="true">Mode Molecule</button>
+    <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')" aria-pressed="false">Activity Molecule</button>
   </div>
 
   <div class="legend" id="mode-legend"></div>
@@ -38,6 +38,8 @@
         "toggle-btn" + (view === "mode" ? " active" : "");
       document.getElementById("btn-activity").className =
         "toggle-btn" + (view === "activity" ? " active" : "");
+      document.getElementById("btn-mode").setAttribute("aria-pressed", view === "mode");
+      document.getElementById("btn-activity").setAttribute("aria-pressed", view === "activity");
     }
 
     function buildLegend(data) {
