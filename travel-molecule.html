@@ -24,6 +24,22 @@
     <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
   </div>
 
+  <div class="search-box" id="search-container">
+    <input type="text" id="node-search" placeholder="Search nodes... (press /)" autocomplete="off">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <div class="keyboard-help" id="keyboard-help">
+    <h3>Keyboard Shortcuts</h3>
+    <div><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> Cycle through nodes</div>
+    <div><kbd>Enter</kbd> / <kbd>Space</kbd> Select focused node</div>
+    <div><kbd>Esc</kbd> Clear selection</div>
+    <div><kbd>/</kbd> Open search</div>
+    <div><kbd>1</kbd> Mode Molecule view</div>
+    <div><kbd>2</kbd> Activity Molecule view</div>
+    <div><kbd>?</kbd> Toggle this help</div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <div class="toggle-bar">
@@ -46,6 +62,7 @@
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
   <script src="js/filter-controls.js"></script>
+  <script src="js/keyboard-nav.js"></script>
   <script src="js/stats-panel.js"></script>
   <script src="js/demographics.js"></script>
   <script>
@@ -260,6 +277,103 @@
           document.getElementById("btn-activity").setAttribute("aria-pressed", "true");
         }
       }
+
+      /* ── Keyboard navigation ── */
+      KeyboardNav.init(
+        function () { return getMoleculeNodes(); },
+        function (node) {
+          // onFocus callback — highlight (or clear) a node
+          if (node) {
+            highlightNode(node.id);
+          } else {
+            highlightNode(null);
+          }
+        },
+        function (node) {
+          // onSelect callback — select a node
+          if (node) {
+            selectNode(node.id);
+          }
+        }
+      );
+
+      /* ── Search / autocomplete ── */
+      var searchInput = document.getElementById("node-search");
+      var searchResults = document.getElementById("search-results");
+      var searchContainer = document.getElementById("search-container");
+      var searchActiveIndex = -1;
+
+      searchInput.addEventListener("input", function () {
+        var query = searchInput.value.trim().toLowerCase();
+        searchResults.innerHTML = "";
+        searchActiveIndex = -1;
+        if (!query) return;
+
+        var nodes = getMoleculeNodes();
+        var matches = nodes.filter(function (n) {
+          return n.label.toLowerCase().indexOf(query) !== -1;
+        });
+
+        matches.forEach(function (n, i) {
+          var div = document.createElement("div");
+          div.className = "search-item";
+          div.innerHTML = "<span>" + n.label + "</span><span style='color:" +
+            n.color + "'>" + (n.share * 100).toFixed(1) + "%</span>";
+          div.addEventListener("click", function () {
+            selectNode(n.id);
+            closeSearch();
+          });
+          searchResults.appendChild(div);
+        });
+      });
+
+      searchInput.addEventListener("keydown", function (e) {
+        var items = searchResults.querySelectorAll(".search-item");
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+          updateSearchActive(items);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+          updateSearchActive(items);
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+            items[searchActiveIndex].click();
+          } else if (items.length > 0) {
+            items[0].click();
+          }
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          closeSearch();
+        }
+      });
+
+      function updateSearchActive(items) {
+        for (var i = 0; i < items.length; i++) {
+          items[i].classList.toggle("active", i === searchActiveIndex);
+        }
+        if (items[searchActiveIndex]) {
+          items[searchActiveIndex].scrollIntoView({ block: "nearest" });
+        }
+      }
+
+      function closeSearch() {
+        searchContainer.classList.remove("visible");
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        searchActiveIndex = -1;
+        searchInput.blur();
+      }
+
+      // Close search on outside click
+      document.addEventListener("click", function (e) {
+        if (searchContainer.classList.contains("visible") &&
+            !searchContainer.contains(e.target)) {
+          closeSearch();
+        }
+      });
     });
 
     function switchTo(view) {

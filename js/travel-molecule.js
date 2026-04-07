@@ -225,20 +225,23 @@
     // ── Interactions ──
     nodes
       .on("mouseenter", function (d) {
-        var connected = connectedNodes(d.id, currentData.links);
-        connected[d.id] = true;
+        // Only apply hover highlighting when no nodes are selected
+        if (selectedNodes.length === 0) {
+          var connected = connectedNodes(d.id, currentData.links);
+          connected[d.id] = true;
 
-        nodeGroup.selectAll(".node")
-          .transition().duration(200)
-          .style("opacity", function (n) { return connected[n.id] ? 1 : 0.12; });
+          nodeGroup.selectAll(".node")
+            .transition().duration(200)
+            .style("opacity", function (n) { return connected[n.id] ? 1 : 0.12; });
 
-        linkGroup.selectAll(".link")
-          .transition().duration(200)
-          .style("opacity", function (l) {
-            var sid = typeof l.source === "object" ? l.source.id : l.source;
-            var tid = typeof l.target === "object" ? l.target.id : l.target;
-            return (sid === d.id || tid === d.id) ? 1 : 0.06;
-          });
+          linkGroup.selectAll(".link")
+            .transition().duration(200)
+            .style("opacity", function (l) {
+              var sid = typeof l.source === "object" ? l.source.id : l.source;
+              var tid = typeof l.target === "object" ? l.target.id : l.target;
+              return (sid === d.id || tid === d.id) ? 1 : 0.06;
+            });
+        }
 
         showTooltip(d, currentData.links, nodesById);
       })
@@ -532,6 +535,27 @@
         simulation.alpha(0.3).restart();
       }
     });
+  };
+
+  // ── Public API for keyboard navigation / search ──
+  window.getMoleculeNodes = function () {
+    return currentData ? currentData.nodes.slice() : [];
+  };
+
+  window.highlightNode = function (nodeId) {
+    if (!currentData) return;
+    if (nodeId === null) {
+      clearHighlight();
+      nodeGroup.selectAll(".node").select(".selection-ring").remove();
+      return;
+    }
+    highlightConnected(nodeId);
+  };
+
+  window.selectNode = function (nodeId) {
+    if (!currentData) return;
+    selectedNodes = [nodeId];
+    updateSelection();
   };
 
   window.switchDataset = function (data) {
