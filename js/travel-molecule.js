@@ -167,6 +167,9 @@
       .data(currentData.nodes, function (d) { return d.id; })
       .enter().append("g")
       .attr("class", "node")
+      .attr("aria-label", function(d) { return d.label + ": " + (d.share * 100).toFixed(1) + "% share"; })
+      .attr("tabindex", "0")
+      .attr("role", "button")
       .call(d3.drag()
         .on("start", dragStarted)
         .on("drag", dragged)
@@ -287,6 +290,8 @@
     svg = container.append("svg")
       .attr("viewBox", "0 0 " + WIDTH + " " + HEIGHT)
       .attr("preserveAspectRatio", "xMidYMid meet")
+      .attr("role", "img")
+      .attr("aria-label", "Travel molecule visualization showing transportation mode shares and multimodal trip chains")
       .style("width", "100%")
       .style("max-width", WIDTH + "px")
       .style("height", "auto");
@@ -299,6 +304,14 @@
 
     createTooltip();
     buildViz(container, data);
+
+    window.addEventListener("resize", function() {
+      var container = document.getElementById(containerId);
+      if (container && simulation) {
+        simulation.force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 2));
+        simulation.alpha(0.3).restart();
+      }
+    });
   };
 
   window.switchDataset = function (data) {
