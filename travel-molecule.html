@@ -17,9 +17,24 @@
 
   <div id="filter-panel" class="filter-panel"></div>
 
+  <div class="print-only">
+    <div class="print-header">Travel Molecule &mdash; NHTS 2017</div>
+    <div class="print-footer">Data: National Household Travel Survey (nhts.ornl.gov)</div>
+  </div>
+
   <div class="data-controls">
     <button id="btn-stats" onclick="StatsPanel.toggle()">Stats</button>
     <button class="filter-btn" id="btn-filter">Filter</button>
+    <div class="export-dropdown" id="export-dropdown">
+      <button class="data-btn" id="btn-export">Export &#9662;</button>
+      <div class="export-menu" id="export-menu">
+        <button class="export-option" data-format="svg">SVG</button>
+        <button class="export-option" data-format="png">PNG</button>
+        <button class="export-option" data-format="csv">CSV</button>
+        <button class="export-option" data-format="json">JSON</button>
+      </div>
+    </div>
+    <button class="data-btn" id="btn-share" title="Copy shareable link">Share</button>
     <button class="data-btn" id="btn-annotate" onclick="Annotations.toggleMode()" title="Toggle annotation mode">Annotate</button>
     <button class="data-btn" id="btn-tour" onclick="StoryMode.start()" title="Start guided tour">Tour</button>
     <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
@@ -77,6 +92,8 @@
   <script src="js/demographics.js"></script>
   <script src="js/story-mode.js"></script>
   <script src="js/annotations.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/url-state.js"></script>
   <script>
     /* ── Toast notification helper ── */
     function showToast(message, type) {
@@ -528,6 +545,53 @@
           n.label + ' (' + (n.share * 100).toFixed(1) + '%)</div>';
       }).join("");
     }
+
+    /* ── Export dropdown ── */
+    (function () {
+      var exportBtn = document.getElementById("btn-export");
+      var exportMenu = document.getElementById("export-menu");
+
+      exportBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        exportMenu.classList.toggle("open");
+      });
+
+      document.addEventListener("click", function () {
+        exportMenu.classList.remove("open");
+      });
+
+      var options = document.querySelectorAll(".export-option");
+      for (var i = 0; i < options.length; i++) {
+        options[i].addEventListener("click", function (e) {
+          e.stopPropagation();
+          var format = this.getAttribute("data-format");
+          var svgEl = document.querySelector("#molecule-container svg");
+          if (format === "svg") {
+            ExportTools.exportSVG(svgEl);
+          } else if (format === "png") {
+            ExportTools.exportPNG(svgEl);
+          } else if (format === "csv") {
+            ExportTools.exportDataCSV(null);
+          } else if (format === "json") {
+            ExportTools.exportDataJSON(null);
+          }
+          exportMenu.classList.remove("open");
+        });
+      }
+    })();
+
+    /* ── Share button ── */
+    document.getElementById("btn-share").addEventListener("click", function () {
+      UrlState.copyShareURL();
+    });
+
+    /* ── Restore state from URL hash on load ── */
+    (function () {
+      var hashState = UrlState.decode();
+      if (hashState && hashState.view) {
+        setTimeout(function () { UrlState.apply(hashState); }, 300);
+      }
+    })();
   </script>
 
 </body>

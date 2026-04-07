@@ -1017,6 +1017,54 @@ kbd {
   color: #fbbf24;
 }
 
+/* ── Export dropdown ── */
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.export-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(10, 18, 40, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 250;
+  min-width: 90px;
+}
+
+.export-menu.open {
+  display: block;
+}
+
+.export-option {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.export-option:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+/* ── Print-only elements (hidden on screen) ── */
+.print-only {
+  display: none;
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }
@@ -1029,4 +1077,117 @@ kbd {
   .story-card-title { font-size: 0.95rem; }
   .story-card-text { font-size: 0.8rem; }
   .annotation-prompt-content { width: 90vw; }
+}
+
+/* ── Print stylesheet ── */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    margin: 1.5cm 1cm;
+    size: landscape;
+  }
+
+  body {
+    background: #fff !important;
+    color: #222 !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  h1 {
+    color: #222 !important;
+    margin-top: 0;
+  }
+
+  h1 span {
+    color: #111 !important;
+  }
+
+  .subtitle {
+    color: #555 !important;
+  }
+
+  /* Hide UI controls */
+  .data-controls,
+  .toggle-bar,
+  .filter-panel,
+  .stats-panel,
+  .search-box,
+  .keyboard-help,
+  .toast,
+  .tooltip,
+  .selection-info,
+  .demo-selector,
+  .export-dropdown,
+  .story-overlay,
+  .story-card,
+  .annotation-prompt,
+  #btn-share {
+    display: none !important;
+  }
+
+  /* Make SVG fill the page */
+  #molecule-container {
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  #molecule-container svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Adjust text colors for print */
+  .node-label {
+    fill: #222 !important;
+    text-shadow: none !important;
+  }
+
+  .node-label-external {
+    fill: #444 !important;
+  }
+
+  .leader-line {
+    stroke: #999 !important;
+  }
+
+  /* Legend for print */
+  .legend {
+    position: static !important;
+    text-align: left !important;
+    color: #444 !important;
+    margin-top: 12px;
+    font-size: 0.8rem !important;
+  }
+
+  /* Show print header/footer */
+  .print-only {
+    display: block !important;
+  }
+
+  .print-header {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 4px;
+  }
+
+  .print-footer {
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid #999;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+  }
 }
