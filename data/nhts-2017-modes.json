@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "title": "Mode Molecule",
+    "subtitle": "How Americans travel — node size = mode share, bonds = multimodal trip chains",
+    "source": "National Household Travel Survey (NHTS)",
+    "sourceUrl": "https://nhts.ornl.gov/",
+    "year": 2017,
+    "region": "United States (National)",
+    "methodology": "Sample data based on published NHTS 2017 mode share summaries and multimodal trip chain frequencies",
+    "sampleSize": 129696,
+    "lastUpdated": "2026-04-07",
+    "units": { "share": "proportion", "weight": "proportion" }
+  },
+  "nodes": [
+    { "id": "car", "label": "Car/Truck", "share": 0.833, "color": "#4a9eff", "description": "Personal vehicle including car, van, SUV, pickup truck", "category": "private" },
+    { "id": "walk", "label": "Walk", "share": 0.105, "color": "#34d399", "description": "Walking trips of any distance", "category": "active" },
+    { "id": "transit_bus", "label": "Bus", "share": 0.030, "color": "#f97316", "description": "Public transit bus, including BRT", "category": "transit" },
+    { "id": "subway_rail", "label": "Subway/Rail", "share": 0.020, "color": "#a78bfa", "description": "Subway, light rail, commuter rail", "category": "transit" },
+    { "id": "bicycle", "label": "Bicycle", "share": 0.010, "color": "#f472b6", "description": "Bicycle trips including bike-share", "category": "active" },
+    { "id": "taxi_tnc", "label": "Taxi/TNC", "share": 0.012, "color": "#fbbf24", "description": "Taxi, Uber, Lyft, and other TNCs", "category": "for-hire" },
+    { "id": "school_bus", "label": "School Bus", "share": 0.044, "color": "#94a3b8", "description": "School bus for K-12 students", "category": "specialized" },
+    { "id": "paratransit", "label": "Paratransit", "share": 0.003, "color": "#fb923c", "description": "Demand-responsive transit for persons with disabilities", "category": "specialized" },
+    { "id": "motorcycle", "label": "Motorcycle", "share": 0.002, "color": "#a3e635", "description": "Motorcycle and moped trips", "category": "private" },
+    { "id": "other", "label": "Other", "share": 0.005, "color": "#64748b", "description": "Other modes including ferry, air taxi, etc.", "category": "other" }
+  ],
+  "links": [
+    { "source": "car", "target": "walk", "weight": 0.45, "label": "Park and walk" },
+    { "source": "car", "target": "subway_rail", "weight": 0.12, "label": "Drive to rail" },
+    { "source": "car", "target": "transit_bus", "weight": 0.08, "label": "Park and ride" },
+    { "source": "walk", "target": "transit_bus", "weight": 0.30, "label": "Walk to bus" },
+    { "source": "walk", "target": "subway_rail", "weight": 0.25, "label": "Walk to rail" },
+    { "source": "walk", "target": "bicycle", "weight": 0.10, "label": "Walk and bike" },
+    { "source": "transit_bus", "target": "subway_rail", "weight": 0.15, "label": "Bus-rail transfer" },
+    { "source": "bicycle", "target": "subway_rail", "weight": 0.06, "label": "Bike to rail" },
+    { "source": "taxi_tnc", "target": "subway_rail", "weight": 0.08, "label": "Taxi to rail" },
+    { "source": "car", "target": "bicycle", "weight": 0.03, "label": "Bike on car rack" },
+    { "source": "car", "target": "taxi_tnc", "weight": 0.04, "label": "Car then taxi" },
+    { "source": "school_bus", "target": "walk", "weight": 0.20, "label": "School bus then walk" },
+    { "source": "other", "target": "car", "weight": 0.02, "label": "Other to car" },
+    { "source": "other", "target": "walk", "weight": 0.03, "label": "Other then walk" },
+    { "source": "paratransit", "target": "walk", "weight": 0.05, "label": "Paratransit then walk" },
+    { "source": "motorcycle", "target": "car", "weight": 0.01, "label": "Motorcycle then car" }
+  ]
+}

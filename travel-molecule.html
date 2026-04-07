@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Molecule — NHTS Visualization</title>
+  <link rel="stylesheet" href="css/travel-molecule.css">
+</head>
+<body>
+
+  <h1><span id="viz-title">Mode Molecule</span></h1>
+  <p class="subtitle" id="viz-subtitle">How Americans travel — node size = mode share, bonds = multimodal trip chains</p>
+
+  <div id="molecule-container"></div>
+
+  <div id="stats-panel" class="stats-panel"></div>
+
+  <div id="filter-panel" class="filter-panel"></div>
+
+  <div class="print-only">
+    <div class="print-header">Travel Molecule &mdash; NHTS 2017</div>
+    <div class="print-footer">Data: National Household Travel Survey (nhts.ornl.gov)</div>
+  </div>
+
+  <div class="data-controls">
+    <button id="btn-stats" onclick="StatsPanel.toggle()">Stats</button>
+    <button class="filter-btn" id="btn-filter">Filter</button>
+    <div class="export-dropdown" id="export-dropdown">
+      <button class="data-btn" id="btn-export">Export &#9662;</button>
+      <div class="export-menu" id="export-menu">
+        <button class="export-option" data-format="svg">SVG</button>
+        <button class="export-option" data-format="png">PNG</button>
+        <button class="export-option" data-format="csv">CSV</button>
+        <button class="export-option" data-format="json">JSON</button>
+      </div>
+    </div>
+    <button class="data-btn" id="btn-share" title="Copy shareable link">Share</button>
+    <button class="data-btn" id="btn-annotate" onclick="Annotations.toggleMode()" title="Toggle annotation mode">Annotate</button>
+    <button class="data-btn" id="btn-tour" onclick="StoryMode.start()" title="Start guided tour">Tour</button>
+    <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
+    <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
+  </div>
+
+  <div class="search-box" id="search-container">
+    <input type="text" id="node-search" placeholder="Search nodes... (press /)" autocomplete="off">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <div class="keyboard-help" id="keyboard-help">
+    <h3>Keyboard Shortcuts</h3>
+    <div><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd> Cycle through nodes</div>
+    <div><kbd>Enter</kbd> / <kbd>Space</kbd> Select focused node</div>
+    <div><kbd>Esc</kbd> Clear selection</div>
+    <div><kbd>/</kbd> Open search</div>
+    <div><kbd>1</kbd> Mode Molecule view</div>
+    <div><kbd>2</kbd> Activity Molecule view</div>
+    <div><kbd>3</kbd> Sankey Flow view</div>
+    <div><kbd>4</kbd> Chord Diagram view</div>
+    <div><kbd>t</kbd> Start guided tour</div>
+    <div><kbd>a</kbd> Toggle annotation mode</div>
+    <div><kbd>?</kbd> Toggle this help</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="toggle-bar">
+    <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')" aria-pressed="true">Mode Molecule</button>
+    <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')" aria-pressed="false">Activity Molecule</button>
+    <button class="toggle-btn" id="btn-sankey" onclick="switchTo('sankey')" aria-pressed="false">Sankey Flow</button>
+    <button class="toggle-btn" id="btn-chord" onclick="switchTo('chord')" aria-pressed="false">Chord Diagram</button>
+  </div>
+
+  <div class="demo-selector" id="demo-selector" style="display:none">
+    <select id="demo-dimension">
+      <option value="">All Population</option>
+    </select>
+    <select id="demo-category" style="display:none">
+    </select>
+  </div>
+
+  <div class="legend" id="mode-legend"></div>
+
+  <script src="https://d3js.org/d3.v4.min.js" integrity="sha384-1EOYqz4UgZkewWm70NbT1JBUXSQpOIS2AaJy6/evZH+lXOrt9ITSJbFctNeyBoIJ" crossorigin="anonymous"></script>
+  <script src="js/travel-molecule-data.js"></script>
+  <script src="js/data-loader.js"></script>
+  <script src="js/travel-molecule.js"></script>
+  <script src="js/sankey-view.js"></script>
+  <script src="js/chord-view.js"></script>
+  <script src="js/filter-controls.js"></script>
+  <script src="js/keyboard-nav.js"></script>
+  <script src="js/stats-panel.js"></script>
+  <script src="js/demographics.js"></script>
+  <script src="js/story-mode.js"></script>
+  <script src="js/annotations.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/url-state.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    /* ── Toast notification helper ── */
+    function showToast(message, type) {
+      var toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast " + (type || "success") + " visible";
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(function () {
+        toast.className = "toast";
+      }, 3000);
+    }
+
+    /* ── URL parameter handling ── */
+    function getUrlParams() {
+      var params = {};
+      var search = window.location.search.substring(1);
+      if (!search) return params;
+      search.split("&").forEach(function (pair) {
+        var kv = pair.split("=");
+        params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || "");
+      });
+      return params;
+    }
+
+    function loadJsonUrl(url, callback) {
+      d3.json(url, function (error, json) {
+        if (error) {
+          showToast("Failed to load JSON from URL", "error");
+          return;
+        }
+        callback(json);
+        showToast("Loaded dataset from URL", "success");
+      });
+    }
+
+    function loadCsvDataset(modesUrl, chainsUrl, callback) {
+      d3.csv(modesUrl, function (error, modes) {
+        if (error) {
+          showToast("Failed to load modes CSV", "error");
+          return;
+        }
+        d3.csv(chainsUrl, function (error2, chains) {
+          if (error2) {
+            showToast("Failed to load chains CSV", "error");
+            return;
+          }
+          var dataset = parseCsvToDataset(modes, chains);
+          callback(dataset);
+          showToast("Loaded CSV dataset", "success");
+        });
+      });
+    }
+
+    function parseCsvToDataset(modes, chains) {
+      var nodes = modes.map(function (row) {
+        return {
+          id: row.id || row.mode || row.name,
+          label: row.label || row.mode || row.name,
+          share: parseFloat(row.share) || 0,
+          color: row.color || "#888"
+        };
+      });
+      var links = chains.map(function (row) {
+        return {
+          source: row.source || row.from,
+          target: row.target || row.to,
+          value: parseFloat(row.value || row.weight) || 1
+        };
+      });
+      return { nodes: nodes, links: links };
+    }
+
+    /* ── File upload handling ── */
+    document.getElementById("btn-load").addEventListener("click", function () {
+      document.getElementById("file-input").click();
+    });
+
+    document.getElementById("file-input").addEventListener("change", function (e) {
+      var files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      if (files.length === 1 && files[0].name.match(/\.json$/i)) {
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            var json = JSON.parse(evt.target.result);
+            if (json.nodes && json.links) {
+              switchDataset(json);
+              buildLegend(json);
+              StatsPanel.update(json);
+              showToast("Loaded " + files[0].name, "success");
+            } else {
+              showToast("JSON must contain nodes and links arrays", "error");
+            }
+          } catch (err) {
+            showToast("Invalid JSON file", "error");
+          }
+        };
+        reader.readAsText(files[0]);
+      } else {
+        // Handle CSV files — match by filename pattern
+        var csvFiles = Array.prototype.slice.call(files).filter(function (f) {
+          return f.name.match(/\.csv$/i);
+        });
+        if (csvFiles.length === 0) {
+          showToast("Unrecognized file format. Use .csv or .json", "error");
+          return;
+        }
+        var modesFile = null;
+        var chainsFile = null;
+        csvFiles.forEach(function (f) {
+          var name = f.name.toLowerCase();
+          if (name.indexOf("mode") !== -1 || name.indexOf("node") !== -1) {
+            modesFile = f;
+          } else if (name.indexOf("chain") !== -1 || name.indexOf("link") !== -1 || name.indexOf("edge") !== -1) {
+            chainsFile = f;
+          } else if (name.indexOf("activit") !== -1) {
+            modesFile = modesFile || f;
+          }
+        });
+        if (!modesFile || !chainsFile) {
+          if (csvFiles.length === 1) {
+            showToast("Need both nodes and links CSVs (found 1 file)", "error");
+          } else {
+            showToast("Could not match CSV files. Name them with 'modes'/'chains'", "error");
+          }
+          return;
+        }
+        var readCsvFile = function (file, cb) {
+          var r = new FileReader();
+          r.onload = function (evt) { cb(d3.csvParse(evt.target.result)); };
+          r.readAsText(file);
+        };
+        readCsvFile(modesFile, function (modes) {
+          readCsvFile(chainsFile, function (chains) {
+            var dataset = parseCsvToDataset(modes, chains);
+            switchDataset(dataset);
+            buildLegend(dataset);
+            StatsPanel.update(dataset);
+            showToast("Loaded CSV dataset (" + csvFiles.length + " files)", "success");
+          });
+        });
+      }
+      // Reset input so the same file can be re-selected
+      e.target.value = "";
+    });
+
+    /* ── Filter panel toggle ── */
+    document.getElementById("btn-filter").addEventListener("click", function () {
+      var panel = document.getElementById("filter-panel");
+      var btn = document.getElementById("btn-filter");
+      panel.classList.toggle("open");
+      btn.classList.toggle("active");
+    });
+
+    function initFilterControls(data) {
+      FilterControls.init(
+        document.getElementById("filter-panel"),
+        data,
+        function (filtered) {
+          switchDataset(filtered);
+          buildLegend(filtered);
+          StatsPanel.update(filtered);
+        }
+      );
+    }
+
+    /* ── Demographic selector helpers ── */
+    var currentView = "mode";
+
+    function initDemoSelector() {
+      Demographics.load().then(function () {
+        var dimSelect = document.getElementById("demo-dimension");
+        var dims = Demographics.getDimensions();
+        dims.forEach(function (d) {
+          var opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = Demographics.getDimensionLabel(d);
+          dimSelect.appendChild(opt);
+        });
+        if (currentView === "mode") {
+          document.getElementById("demo-selector").style.display = "flex";
+        }
+      }).catch(function (err) {
+        console.warn("Could not load demographics:", err);
+      });
+    }
+
+    function onDimensionChange() {
+      var dimSelect = document.getElementById("demo-dimension");
+      var catSelect = document.getElementById("demo-category");
+      var dimension = dimSelect.value;
+
+      if (!dimension) {
+        catSelect.style.display = "none";
+        catSelect.innerHTML = "";
+        var data = MODE_MOLECULE_DATA;
+        switchDataset(data);
+        buildLegend(data);
+        StatsPanel.update(data);
+        return;
+      }
+
+      var cats = Demographics.getCategories(dimension);
+      catSelect.innerHTML = "";
+      cats.forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        catSelect.appendChild(opt);
+      });
+      catSelect.style.display = "";
+      onCategoryChange();
+    }
+
+    function onCategoryChange() {
+      var dimension = document.getElementById("demo-dimension").value;
+      var category = document.getElementById("demo-category").value;
+      if (!dimension || !category) return;
+
+      var data = Demographics.buildMoleculeForCategory(dimension, category, MODE_MOLECULE_DATA);
+      switchDataset(data);
+      buildLegend(data);
+      StatsPanel.update(data);
+    }
+
+    document.getElementById("demo-dimension").addEventListener("change", onDimensionChange);
+    document.getElementById("demo-category").addEventListener("change", onCategoryChange);
+
+    /* ── Initialization ── */
+    document.addEventListener("DOMContentLoaded", function () {
+      var params = getUrlParams();
+      var initialView = params.view || "mode";
+      currentView = initialView;
+
+      if (params.data) {
+        // ?data=url-to-json — load a complete JSON dataset
+        loadJsonUrl(params.data, function (json) {
+          initMolecule("molecule-container", json);
+          buildLegend(json);
+          StatsPanel.update(json);
+          initFilterControls(json);
+        });
+      } else if (params.modes && params.chains) {
+        // ?modes=path/to/modes.csv&chains=path/to/chains.csv — load custom CSVs
+        loadCsvDataset(params.modes, params.chains, function (dataset) {
+          initMolecule("molecule-container", dataset);
+          buildLegend(dataset);
+          StatsPanel.update(dataset);
+          initFilterControls(dataset);
+        });
+      } else if (params.source === "csv") {
+        // ?source=csv — load from data/ directory CSV files
+        loadCsvDataset("data/modes.csv", "data/chains.csv", function (dataset) {
+          initMolecule("molecule-container", dataset);
+          buildLegend(dataset);
+          StatsPanel.update(dataset);
+          initFilterControls(dataset);
+        });
+      } else {
+        // Default: use hardcoded data
+        var defaultData = initialView === "activity" ? ACTIVITY_MOLECULE_DATA : MODE_MOLECULE_DATA;
+        initMolecule("molecule-container", defaultData);
+        buildLegend(defaultData);
+        StatsPanel.update(defaultData);
+        initFilterControls(defaultData);
+
+        // ?view=activity — start on activity view
+        if (initialView === "activity") {
+          document.getElementById("btn-mode").className = "toggle-btn";
+          document.getElementById("btn-activity").className = "toggle-btn active";
+          document.getElementById("btn-mode").setAttribute("aria-pressed", "false");
+          document.getElementById("btn-activity").setAttribute("aria-pressed", "true");
+        }
+      }
+
+      // Load demographic data and populate selector
+      initDemoSelector();
+
+      /* ── Keyboard navigation ── */
+      KeyboardNav.init(
+        function () { return getMoleculeNodes(); },
+        function (node) {
+          // onFocus callback — highlight (or clear) a node
+          if (node) {
+            highlightNode(node.id);
+          } else {
+            highlightNode(null);
+          }
+        },
+        function (node) {
+          // onSelect callback — select a node
+          if (node) {
+            selectNode(node.id);
+          }
+        }
+      );
+
+      /* ── Search / autocomplete ── */
+      var searchInput = document.getElementById("node-search");
+      var searchResults = document.getElementById("search-results");
+      var searchContainer = document.getElementById("search-container");
+      var searchActiveIndex = -1;
+
+      searchInput.addEventListener("input", function () {
+        var query = searchInput.value.trim().toLowerCase();
+        searchResults.innerHTML = "";
+        searchActiveIndex = -1;
+        if (!query) return;
+
+        var nodes = getMoleculeNodes();
+        var matches = nodes.filter(function (n) {
+          return n.label.toLowerCase().indexOf(query) !== -1;
+        });
+
+        matches.forEach(function (n, i) {
+          var div = document.createElement("div");
+          div.className = "search-item";
+          div.innerHTML = "<span>" + n.label + "</span><span style='color:" +
+            n.color + "'>" + (n.share * 100).toFixed(1) + "%</span>";
+          div.addEventListener("click", function () {
+            selectNode(n.id);
+            closeSearch();
+          });
+          searchResults.appendChild(div);
+        });
+      });
+
+      searchInput.addEventListener("keydown", function (e) {
+        var items = searchResults.querySelectorAll(".search-item");
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+          updateSearchActive(items);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+          updateSearchActive(items);
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+            items[searchActiveIndex].click();
+          } else if (items.length > 0) {
+            items[0].click();
+          }
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          closeSearch();
+        }
+      });
+
+      function updateSearchActive(items) {
+        for (var i = 0; i < items.length; i++) {
+          items[i].classList.toggle("active", i === searchActiveIndex);
+        }
+        if (items[searchActiveIndex]) {
+          items[searchActiveIndex].scrollIntoView({ block: "nearest" });
+        }
+      }
+
+      function closeSearch() {
+        searchContainer.classList.remove("visible");
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        searchActiveIndex = -1;
+        searchInput.blur();
+      }
+
+      // Close search on outside click
+      document.addEventListener("click", function (e) {
+        if (searchContainer.classList.contains("visible") &&
+            !searchContainer.contains(e.target)) {
+          closeSearch();
+        }
+      });
+    });
+
+    function switchTo(view) {
+      var prevView = currentView;
+      currentView = view;
+
+      // Destroy previous non-molecule views
+      if (prevView === "sankey") { SankeyView.destroy(); }
+      if (prevView === "chord") { ChordView.destroy(); }
+
+      // For molecule views, clear the container and re-init if coming from non-molecule
+      var container = document.getElementById("molecule-container");
+      var isMoleculeView = (view === "mode" || view === "activity");
+      var wasMoleculeView = (prevView === "mode" || prevView === "activity");
+
+      if (isMoleculeView) {
+        var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
+        if (!wasMoleculeView) {
+          // Coming from a non-molecule view: need to re-init the force graph
+          container.innerHTML = "";
+          initMolecule("molecule-container", data);
+        } else {
+          switchDataset(data);
+        }
+        buildLegend(data);
+        StatsPanel.update(data);
+        FilterControls.reset();
+        FilterControls.updateNodes(data);
+      } else if (view === "sankey") {
+        if (wasMoleculeView) {
+          // Clear molecule SVG first
+          container.innerHTML = "";
+        }
+        SankeyView.init("molecule-container", MODE_MOLECULE_DATA, ACTIVITY_MOLECULE_DATA);
+        buildLegend(MODE_MOLECULE_DATA);
+      } else if (view === "chord") {
+        if (wasMoleculeView) {
+          container.innerHTML = "";
+        }
+        ChordView.init("molecule-container", MODE_MOLECULE_DATA);
+        buildLegend(MODE_MOLECULE_DATA);
+      }
+
+      // Update toggle button states
+      var viewButtons = ["mode", "activity", "sankey", "chord"];
+      viewButtons.forEach(function (v) {
+        var btn = document.getElementById("btn-" + v);
+        if (btn) {
+          btn.className = "toggle-btn" + (v === view ? " active" : "");
+          btn.setAttribute("aria-pressed", v === view ? "true" : "false");
+        }
+      });
+
+      // Show demographic selector only for mode view
+      var demoSelector = document.getElementById("demo-selector");
+      if (view === "mode" && Demographics.data) {
+        demoSelector.style.display = "flex";
+      } else {
+        demoSelector.style.display = "none";
+      }
+
+      // Reset demographic dropdowns when switching away from mode view
+      if (view !== "mode") {
+        document.getElementById("demo-dimension").value = "";
+        document.getElementById("demo-category").style.display = "none";
+        document.getElementById("demo-category").innerHTML = "";
+      }
+    }
+
+    function buildLegend(data) {
+      var el = document.getElementById("mode-legend");
+      el.innerHTML = data.nodes.map(function (n) {
+        return '<div><span class="legend-dot" style="background:' + n.color + '"></span>' +
+          n.label + ' (' + (n.share * 100).toFixed(1) + '%)</div>';
+      }).join("");
+    }
+
+    /* ── Export dropdown ── */
+    (function () {
+      var exportBtn = document.getElementById("btn-export");
+      var exportMenu = document.getElementById("export-menu");
+
+      exportBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        exportMenu.classList.toggle("open");
+      });
+
+      document.addEventListener("click", function () {
+        exportMenu.classList.remove("open");
+      });
+
+      var options = document.querySelectorAll(".export-option");
+      for (var i = 0; i < options.length; i++) {
+        options[i].addEventListener("click", function (e) {
+          e.stopPropagation();
+          var format = this.getAttribute("data-format");
+          var svgEl = document.querySelector("#molecule-container svg");
+          if (format === "svg") {
+            ExportTools.exportSVG(svgEl);
+          } else if (format === "png") {
+            ExportTools.exportPNG(svgEl);
+          } else if (format === "csv") {
+            ExportTools.exportDataCSV(null);
+          } else if (format === "json") {
+            ExportTools.exportDataJSON(null);
+          }
+          exportMenu.classList.remove("open");
+        });
+      }
+    })();
+
+    /* ── Share button ── */
+    document.getElementById("btn-share").addEventListener("click", function () {
+      UrlState.copyShareURL();
+    });
+
+    /* ── Restore state from URL hash on load ── */
+    (function () {
+      var hashState = UrlState.decode();
+      if (hashState && hashState.view) {
+        setTimeout(function () { UrlState.apply(hashState); }, 300);
+      }
+    })();
+  </script>
+
+</body>
+</html>

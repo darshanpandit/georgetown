@@ -1,0 +1,11 @@
+activity_id,activity_label,trip_share,color
+home,Home,0.280,#4a9eff
+work,Work,0.185,#ef4444
+shopping,Shopping/Errands,0.195,#f97316
+social,Social/Recreation,0.145,#34d399
+school,School/Daycare,0.068,#a78bfa
+medical,Medical/Dental,0.037,#f472b6
+escort,Escort/Dropoff,0.065,#86efac
+meals,Meals,0.045,#fbbf24
+religious,Religious/Community,0.025,#c084fc
+other,Other,0.020,#94a3b8
