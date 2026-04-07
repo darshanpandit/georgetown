@@ -28,6 +28,14 @@
     <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')" aria-pressed="false">Activity Molecule</button>
   </div>
 
+  <div class="demo-selector" id="demo-selector" style="display:none">
+    <select id="demo-dimension">
+      <option value="">All Population</option>
+    </select>
+    <select id="demo-category" style="display:none">
+    </select>
+  </div>
+
   <div class="legend" id="mode-legend"></div>
 
   <script src="https://d3js.org/d3.v4.min.js" integrity="sha384-1EOYqz4UgZkewWm70NbT1JBUXSQpOIS2AaJy6/evZH+lXOrt9ITSJbFctNeyBoIJ" crossorigin="anonymous"></script>
@@ -35,6 +43,7 @@
   <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
   <script src="js/stats-panel.js"></script>
+  <script src="js/demographics.js"></script>
   <script>
     /* ── Toast notification helper ── */
     function showToast(message, type) {

@@ -13,6 +13,8 @@
   var svg, linkGroup, nodeGroup, simulation;
   var tooltip;
   var currentData = null;
+  var selectedNodes = [];
+  var selectionInfoEl = null;
 
   // ── Scales ──
   var radiusScale = d3.scaleSqrt().domain([0.005, 0.85]).range([MIN_RADIUS, MAX_RADIUS]);
@@ -242,12 +244,33 @@
       })
       .on("mousemove", moveTooltip)
       .on("mouseleave", function () {
-        nodeGroup.selectAll(".node").transition().duration(300).style("opacity", 1);
-        linkGroup.selectAll(".link").transition().duration(300).style("opacity", function (l) {
-          return l.modeColor ? 0.55 : 0.3;
-        });
+        if (selectedNodes.length === 0) {
+          nodeGroup.selectAll(".node").transition().duration(300).style("opacity", 1);
+          linkGroup.selectAll(".link").transition().duration(300).style("opacity", function (l) {
+            return l.modeColor ? 0.55 : 0.3;
+          });
+        }
         hideTooltip();
+      })
+      .on("click", function (d) {
+        d3.event.stopPropagation();
+        var idx = selectedNodes.indexOf(d.id);
+        if (idx >= 0) {
+          selectedNodes.splice(idx, 1);
+        } else {
+          if (selectedNodes.length >= 2) selectedNodes.shift();
+          selectedNodes.push(d.id);
+        }
+        updateSelection();
       });
+
+    // Click SVG background to deselect all
+    svg.on("click", function () {
+      if (selectedNodes.length > 0) {
+        selectedNodes = [];
+        updateSelection();
+      }
+    });
 
     // ── Tick ──
     function ticked() {
@@ -263,6 +286,203 @@
         return "translate(" + d.x + "," + d.y + ")";
       });
     }
+  }
+
+  // ── Selection & path highlighting ──
+  function updateSelection() {
+    var nodesById = {};
+    if (currentData) {
+      currentData.nodes.forEach(function (n) { nodesById[n.id] = n; });
+    }
+
+    // Update selection rings
+    nodeGroup.selectAll(".node").each(function (d) {
+      var isSelected = selectedNodes.indexOf(d.id) >= 0;
+      d3.select(this).select(".selection-ring").remove();
+      if (isSelected) {
+        d3.select(this).insert("circle", ":first-child")
+          .attr("class", "selection-ring")
+          .attr("r", radiusScale(d.share) + 6)
+          .attr("fill", "none")
+          .attr("stroke", "#fff")
+          .attr("stroke-width", 2.5)
+          .attr("stroke-dasharray", "4,3");
+      }
+    });
+
+    if (selectedNodes.length === 2) {
+      highlightPath(selectedNodes[0], selectedNodes[1]);
+    } else if (selectedNodes.length === 1) {
+      highlightConnected(selectedNodes[0]);
+    } else {
+      clearHighlight();
+    }
+
+    updateSelectionInfo(nodesById);
+  }
+
+  function findShortestPath(startId, endId, links) {
+    // BFS
+    var adj = {};
+    links.forEach(function (l) {
+      var sid = typeof l.source === "object" ? l.source.id : l.source;
+      var tid = typeof l.target === "object" ? l.target.id : l.target;
+      if (!adj[sid]) adj[sid] = [];
+      if (!adj[tid]) adj[tid] = [];
+      adj[sid].push(tid);
+      adj[tid].push(sid);
+    });
+    if (!adj[startId]) return null;
+    var visited = {};
+    var parent = {};
+    var queue = [startId];
+    visited[startId] = true;
+    parent[startId] = null;
+    while (queue.length > 0) {
+      var current = queue.shift();
+      if (current === endId) {
+        // Reconstruct path
+        var path = [];
+        var node = endId;
+        while (node !== null) {
+          path.unshift(node);
+          node = parent[node];
+        }
+        return path;
+      }
+      var neighbors = adj[current] || [];
+      for (var i = 0; i < neighbors.length; i++) {
+        if (!visited[neighbors[i]]) {
+          visited[neighbors[i]] = true;
+          parent[neighbors[i]] = current;
+          queue.push(neighbors[i]);
+        }
+      }
+    }
+    return null; // No path found
+  }
+
+  function highlightPath(id1, id2) {
+    var path = findShortestPath(id1, id2, currentData.links);
+    if (!path) {
+      // No path: just highlight the two selected nodes
+      var selSet = {};
+      selSet[id1] = true;
+      selSet[id2] = true;
+      nodeGroup.selectAll(".node").transition().duration(200)
+        .style("opacity", function (d) { return selSet[d.id] ? 1 : 0.15; });
+      linkGroup.selectAll(".link").transition().duration(200)
+        .style("opacity", 0.06);
+      return;
+    }
+    var pathSet = {};
+    path.forEach(function (id) { pathSet[id] = true; });
+
+    // Build set of path edges for consecutive node pairs
+    var pathEdges = {};
+    for (var i = 0; i < path.length - 1; i++) {
+      var key = path[i] < path[i + 1] ? path[i] + "|" + path[i + 1] : path[i + 1] + "|" + path[i];
+      pathEdges[key] = true;
+    }
+
+    nodeGroup.selectAll(".node").transition().duration(200)
+      .style("opacity", function (d) { return pathSet[d.id] ? 1 : 0.15; });
+
+    linkGroup.selectAll(".link").transition().duration(200)
+      .style("opacity", function (l) {
+        var sid = typeof l.source === "object" ? l.source.id : l.source;
+        var tid = typeof l.target === "object" ? l.target.id : l.target;
+        var key = sid < tid ? sid + "|" + tid : tid + "|" + sid;
+        return pathEdges[key] ? 1 : 0.06;
+      });
+  }
+
+  function highlightConnected(nodeId) {
+    var connected = connectedNodes(nodeId, currentData.links);
+    connected[nodeId] = true;
+
+    nodeGroup.selectAll(".node").transition().duration(200)
+      .style("opacity", function (d) { return connected[d.id] ? 1 : 0.15; });
+
+    linkGroup.selectAll(".link").transition().duration(200)
+      .style("opacity", function (l) {
+        var sid = typeof l.source === "object" ? l.source.id : l.source;
+        var tid = typeof l.target === "object" ? l.target.id : l.target;
+        return (sid === nodeId || tid === nodeId) ? 1 : 0.06;
+      });
+  }
+
+  function clearHighlight() {
+    nodeGroup.selectAll(".node").transition().duration(300)
+      .style("opacity", 1);
+    linkGroup.selectAll(".link").transition().duration(300)
+      .style("opacity", function (l) { return l.modeColor ? 0.55 : 0.3; });
+  }
+
+  function ensureSelectionInfoEl() {
+    if (!selectionInfoEl) {
+      selectionInfoEl = d3.select("body").append("div")
+        .attr("id", "selection-info")
+        .attr("class", "selection-info");
+    }
+    return selectionInfoEl;
+  }
+
+  function updateSelectionInfo(nodesById) {
+    var el = ensureSelectionInfoEl();
+
+    if (selectedNodes.length === 0) {
+      el.classed("visible", false);
+      return;
+    }
+
+    var html = "";
+
+    if (selectedNodes.length === 1) {
+      var nodeId = selectedNodes[0];
+      var node = nodesById[nodeId];
+      if (!node) { el.classed("visible", false); return; }
+      var conns = connectionList(nodeId, currentData.links, nodesById);
+      html = '<div class="si-title">' + node.label + '</div>';
+      html += '<div class="si-share" style="color:' + node.color + '">' +
+        (node.share * 100).toFixed(1) + '% share</div>';
+      if (conns.length) {
+        html += '<div class="si-connections">';
+        conns.forEach(function (c) {
+          html += '<div class="si-conn-item"><span>' + c.label +
+            '</span><span>' + (c.weight * 100).toFixed(0) + '%</span></div>';
+        });
+        html += '</div>';
+      }
+    } else if (selectedNodes.length === 2) {
+      var n1 = nodesById[selectedNodes[0]];
+      var n2 = nodesById[selectedNodes[1]];
+      if (!n1 || !n2) { el.classed("visible", false); return; }
+      var path = findShortestPath(selectedNodes[0], selectedNodes[1], currentData.links);
+      var directlyConnected = false;
+      currentData.links.forEach(function (l) {
+        var sid = typeof l.source === "object" ? l.source.id : l.source;
+        var tid = typeof l.target === "object" ? l.target.id : l.target;
+        if ((sid === selectedNodes[0] && tid === selectedNodes[1]) ||
+            (sid === selectedNodes[1] && tid === selectedNodes[0])) {
+          directlyConnected = true;
+        }
+      });
+      var combinedShare = ((n1.share + n2.share) * 100).toFixed(1);
+      html = '<div class="si-title">' + n1.label + ' \u2194 ' + n2.label + '</div>';
+      html += '<div class="si-share">Combined share: ' + combinedShare + '%</div>';
+      if (path) {
+        var pathLabels = path.map(function (id) { return nodesById[id] ? nodesById[id].label : id; });
+        html += '<div class="si-path">Path: ' + pathLabels.join(' \u2192 ') + '</div>';
+        html += '<div class="si-detail">' +
+          (directlyConnected ? 'Directly connected' : 'Connected via ' + (path.length - 2) + ' intermediate node' + (path.length - 2 !== 1 ? 's' : '')) +
+          '</div>';
+      } else {
+        html += '<div class="si-detail">No path between these nodes</div>';
+      }
+    }
+
+    el.html(html).classed("visible", true);
   }
 
   // ── Drag handlers ──
@@ -315,6 +535,10 @@
   };
 
   window.switchDataset = function (data) {
+    // Clear selection state when switching datasets
+    selectedNodes = [];
+    if (selectionInfoEl) selectionInfoEl.classed("visible", false);
+
     // Fade out, rebuild, fade in
     linkGroup.transition().duration(300).style("opacity", 0);
     nodeGroup.transition().duration(300).style("opacity", 0)
