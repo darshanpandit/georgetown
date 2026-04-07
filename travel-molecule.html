@@ -20,6 +20,8 @@
   <div class="data-controls">
     <button id="btn-stats" onclick="StatsPanel.toggle()">Stats</button>
     <button class="filter-btn" id="btn-filter">Filter</button>
+    <button class="data-btn" id="btn-annotate" onclick="Annotations.toggleMode()" title="Toggle annotation mode">Annotate</button>
+    <button class="data-btn" id="btn-tour" onclick="StoryMode.start()" title="Start guided tour">Tour</button>
     <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
     <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
   </div>
@@ -39,6 +41,8 @@
     <div><kbd>2</kbd> Activity Molecule view</div>
     <div><kbd>3</kbd> Sankey Flow view</div>
     <div><kbd>4</kbd> Chord Diagram view</div>
+    <div><kbd>t</kbd> Start guided tour</div>
+    <div><kbd>a</kbd> Toggle annotation mode</div>
     <div><kbd>?</kbd> Toggle this help</div>
   </div>
 
@@ -71,6 +75,8 @@
   <script src="js/keyboard-nav.js"></script>
   <script src="js/stats-panel.js"></script>
   <script src="js/demographics.js"></script>
+  <script src="js/story-mode.js"></script>
+  <script src="js/annotations.js"></script>
   <script>
     /* ── Toast notification helper ── */
     function showToast(message, type) {

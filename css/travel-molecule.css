@@ -762,6 +762,261 @@ kbd {
   cursor: pointer;
 }
 
+/* ── Story Mode ── */
+.story-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 400;
+  pointer-events: none;
+}
+
+.story-card {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
+  max-width: 90vw;
+  background: rgba(10, 18, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 20px 24px 16px;
+  color: #fff;
+  z-index: 500;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.story-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.story-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.story-btn-exit {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.story-btn-exit:hover {
+  color: #fff;
+}
+
+.story-card-text {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16px;
+}
+
+.story-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.story-card-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.story-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.story-dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.story-dot.active {
+  background: #5b9aff;
+  transform: scale(1.25);
+}
+
+.story-card-counter {
+  text-align: center;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.04em;
+}
+
+.story-card-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.story-btn-prev,
+.story-btn-next {
+  padding: 7px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.story-btn-prev:hover:not(:disabled),
+.story-btn-next:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.story-btn-prev:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.story-btn-next {
+  background: rgba(91, 154, 255, 0.3);
+  border-color: rgba(91, 154, 255, 0.5);
+}
+
+.story-btn-next:hover {
+  background: rgba(91, 154, 255, 0.5);
+}
+
+/* ── Annotations ── */
+.annotation-layer {
+  pointer-events: all;
+}
+
+.annotation-leader {
+  pointer-events: none;
+}
+
+.annotation-bg {
+  cursor: grab;
+}
+
+.annotation-bg:active {
+  cursor: grabbing;
+}
+
+.annotation-delete {
+  pointer-events: all;
+}
+
+.annotation-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 600;
+}
+
+.annotation-prompt-content {
+  background: rgba(10, 18, 40, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.annotation-prompt-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.annotation-prompt-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.annotation-prompt-input:focus {
+  border-color: rgba(91, 154, 255, 0.5);
+}
+
+.annotation-prompt-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.annotation-prompt-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.annotation-prompt-cancel,
+.annotation-prompt-save {
+  padding: 7px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.annotation-prompt-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.annotation-prompt-save {
+  background: rgba(91, 154, 255, 0.3);
+  border-color: rgba(91, 154, 255, 0.5);
+  color: #fff;
+}
+
+.annotation-prompt-save:hover {
+  background: rgba(91, 154, 255, 0.5);
+}
+
+/* Annotate button active state */
+#btn-annotate.active {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }
@@ -770,4 +1025,8 @@ kbd {
   .legend { font-size: 0.6rem; bottom: 60px; }
   .filter-panel { width: 200px; right: -220px; }
   .demo-selector select { padding: 4px 8px; font-size: 0.7rem; }
+  .story-card { width: 95vw; bottom: 16px; padding: 14px 16px 12px; }
+  .story-card-title { font-size: 0.95rem; }
+  .story-card-text { font-size: 0.8rem; }
+  .annotation-prompt-content { width: 90vw; }
 }

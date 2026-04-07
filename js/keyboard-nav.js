@@ -42,6 +42,18 @@
             // Switch to Activity view
             if (typeof switchTo === "function") switchTo("activity");
             break;
+          case "3":
+            if (typeof switchTo === "function") switchTo("sankey");
+            break;
+          case "4":
+            if (typeof switchTo === "function") switchTo("chord");
+            break;
+          case "t":
+            if (typeof StoryMode !== "undefined" && StoryMode.start) StoryMode.start();
+            break;
+          case "a":
+            if (typeof Annotations !== "undefined" && Annotations.toggleMode) Annotations.toggleMode();
+            break;
           case "?":
             KeyboardNav.showHelp();
             break;
