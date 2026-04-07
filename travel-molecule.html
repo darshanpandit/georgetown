@@ -13,6 +13,13 @@
 
   <div id="molecule-container"></div>
 
+  <div class="data-controls">
+    <button class="data-btn" id="btn-load" title="Load custom data">Load Data</button>
+    <input type="file" id="file-input" accept=".csv,.json" multiple style="display:none">
+  </div>
+
+  <div class="toast" id="toast"></div>
+
   <div class="toggle-bar">
     <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')" aria-pressed="true">Mode Molecule</button>
     <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')" aria-pressed="false">Activity Molecule</button>
@@ -22,6 +29,7 @@
 
   <script src="https://d3js.org/d3.v4.min.js" integrity="sha384-1EOYqz4UgZkewWm70NbT1JBUXSQpOIS2AaJy6/evZH+lXOrt9ITSJbFctNeyBoIJ" crossorigin="anonymous"></script>
   <script src="js/travel-molecule-data.js"></script>
+  <script src="js/data-loader.js"></script>
   <script src="js/travel-molecule.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
