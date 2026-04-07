@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Molecule — NHTS Visualization</title>
+  <link rel="stylesheet" href="css/travel-molecule.css">
+</head>
+<body>
+
+  <h1><span id="viz-title">Mode Molecule</span></h1>
+  <p class="subtitle" id="viz-subtitle">How Americans travel — node size = mode share, bonds = multimodal trip chains</p>
+
+  <div id="molecule-container"></div>
+
+  <div class="toggle-bar">
+    <button class="toggle-btn active" id="btn-mode" onclick="switchTo('mode')">Mode Molecule</button>
+    <button class="toggle-btn" id="btn-activity" onclick="switchTo('activity')">Activity Molecule</button>
+  </div>
+
+  <div class="legend" id="mode-legend"></div>
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="js/travel-molecule-data.js"></script>
+  <script src="js/travel-molecule.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      initMolecule("molecule-container", MODE_MOLECULE_DATA);
+      buildLegend(MODE_MOLECULE_DATA);
+    });
+
+    function switchTo(view) {
+      var data = view === "mode" ? MODE_MOLECULE_DATA : ACTIVITY_MOLECULE_DATA;
+      switchDataset(data);
+      buildLegend(data);
+
+      document.getElementById("btn-mode").className =
+        "toggle-btn" + (view === "mode" ? " active" : "");
+      document.getElementById("btn-activity").className =
+        "toggle-btn" + (view === "activity" ? " active" : "");
+    }
+
+    function buildLegend(data) {
+      var el = document.getElementById("mode-legend");
+      el.innerHTML = data.nodes.map(function (n) {
+        return '<div><span class="legend-dot" style="background:' + n.color + '"></span>' +
+          n.label + ' (' + (n.share * 100).toFixed(1) + '%)</div>';
+      }).join("");
+    }
+  </script>
+
+</body>
+</html>
