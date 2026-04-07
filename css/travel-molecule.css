@@ -575,6 +575,152 @@ svg {
   color: #fff;
 }
 
+/* ── Selection info panel ── */
+.selection-info {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 18, 40, 0.92);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 12px 20px;
+  color: #fff;
+  font-size: 0.82rem;
+  max-width: 400px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 50;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+.selection-info.visible { opacity: 1; }
+
+.selection-info .si-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.selection-info .si-share {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.selection-info .si-connections {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 6px;
+  margin-top: 4px;
+  text-align: left;
+}
+
+.selection-info .si-conn-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ddd;
+}
+
+.selection-info .si-path {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.selection-info .si-detail {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Selection ring animation ── */
+.selection-ring {
+  animation: selectionPulse 2s ease-in-out infinite;
+}
+
+@keyframes selectionPulse {
+  0%, 100% { stroke-opacity: 1; }
+  50% { stroke-opacity: 0.4; }
+}
+
+/* ── Node Search Box ── */
+.search-box {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 200;
+}
+.search-box.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.search-box input {
+  width: 280px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(10, 18, 40, 0.95);
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+}
+.search-box input:focus {
+  border-color: rgba(255,255,255,0.4);
+}
+.search-results {
+  background: rgba(10, 18, 40, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.search-results .search-item {
+  padding: 6px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.82rem;
+}
+.search-results .search-item:hover,
+.search-results .search-item.active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ── Keyboard Help Overlay ── */
+.keyboard-help {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 18, 40, 0.95);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 24px 32px;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 2;
+  z-index: 300;
+  display: none;
+}
+.keyboard-help.visible { display: block; }
+.keyboard-help h3 { margin-bottom: 8px; font-size: 1rem; }
+kbd {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }

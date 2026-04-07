@@ -195,6 +195,26 @@
       e.target.value = "";
     });
 
+    /* ── Filter panel toggle ── */
+    document.getElementById("btn-filter").addEventListener("click", function () {
+      var panel = document.getElementById("filter-panel");
+      var btn = document.getElementById("btn-filter");
+      panel.classList.toggle("open");
+      btn.classList.toggle("active");
+    });
+
+    function initFilterControls(data) {
+      FilterControls.init(
+        document.getElementById("filter-panel"),
+        data,
+        function (filtered) {
+          switchDataset(filtered);
+          buildLegend(filtered);
+          StatsPanel.update(filtered);
+        }
+      );
+    }
+
     /* ── Initialization ── */
     document.addEventListener("DOMContentLoaded", function () {
       var params = getUrlParams();
@@ -206,6 +226,7 @@
           initMolecule("molecule-container", json);
           buildLegend(json);
           StatsPanel.update(json);
+          initFilterControls(json);
         });
       } else if (params.modes && params.chains) {
         // ?modes=path/to/modes.csv&chains=path/to/chains.csv — load custom CSVs
@@ -213,6 +234,7 @@
           initMolecule("molecule-container", dataset);
           buildLegend(dataset);
           StatsPanel.update(dataset);
+          initFilterControls(dataset);
         });
       } else if (params.source === "csv") {
         // ?source=csv — load from data/ directory CSV files
@@ -220,6 +242,7 @@
           initMolecule("molecule-container", dataset);
           buildLegend(dataset);
           StatsPanel.update(dataset);
+          initFilterControls(dataset);
         });
       } else {
         // Default: use hardcoded data
@@ -227,6 +250,7 @@
         initMolecule("molecule-container", defaultData);
         buildLegend(defaultData);
         StatsPanel.update(defaultData);
+        initFilterControls(defaultData);
 
         // ?view=activity — start on activity view
         if (initialView === "activity") {
@@ -243,6 +267,8 @@
       switchDataset(data);
       buildLegend(data);
       StatsPanel.update(data);
+      FilterControls.reset();
+      FilterControls.updateNodes(data);
 
       document.getElementById("btn-mode").className =
         "toggle-btn" + (view === "mode" ? " active" : "");
