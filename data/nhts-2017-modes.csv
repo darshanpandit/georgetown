@@ -1,0 +1,11 @@
+mode_id,mode_label,mode_share,color
+car,Car/Truck,0.833,#4a9eff
+walk,Walk,0.105,#34d399
+transit_bus,Bus,0.030,#f97316
+subway_rail,Subway/Rail,0.020,#a78bfa
+bicycle,Bicycle,0.010,#f472b6
+taxi_tnc,Taxi/TNC,0.012,#fbbf24
+school_bus,School Bus,0.044,#94a3b8
+paratransit,Paratransit,0.003,#fb923c
+motorcycle,Motorcycle,0.002,#a3e635
+other,Other,0.005,#64748b

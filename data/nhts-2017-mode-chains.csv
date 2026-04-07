@@ -1,0 +1,17 @@
+source_mode,target_mode,chain_weight,chain_label
+car,walk,0.45,Park and walk
+car,subway_rail,0.12,Drive to rail
+car,transit_bus,0.08,Park and ride
+walk,transit_bus,0.30,Walk to bus
+walk,subway_rail,0.25,Walk to rail
+walk,bicycle,0.10,Walk and bike
+transit_bus,subway_rail,0.15,Bus to rail transfer
+bicycle,subway_rail,0.06,Bike to rail
+taxi_tnc,subway_rail,0.08,Taxi to rail
+car,bicycle,0.03,Bike on car rack
+car,taxi_tnc,0.04,Car then taxi
+school_bus,walk,0.20,School bus then walk
+other,car,0.02,Other to car
+other,walk,0.03,Other then walk
+motorcycle,car,0.01,Motorcycle then car
+paratransit,walk,0.05,Paratransit then walk

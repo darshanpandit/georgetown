@@ -1,0 +1,59 @@
+demographic,category,mode,share
+age_group,16-24,car,0.72
+age_group,16-24,walk,0.15
+age_group,16-24,transit_bus,0.05
+age_group,16-24,bicycle,0.03
+age_group,16-24,other,0.05
+age_group,25-44,car,0.85
+age_group,25-44,walk,0.08
+age_group,25-44,transit_bus,0.03
+age_group,25-44,bicycle,0.01
+age_group,25-44,other,0.03
+age_group,45-64,car,0.87
+age_group,45-64,walk,0.07
+age_group,45-64,transit_bus,0.02
+age_group,45-64,bicycle,0.01
+age_group,45-64,other,0.03
+age_group,65+,car,0.82
+age_group,65+,walk,0.10
+age_group,65+,transit_bus,0.03
+age_group,65+,bicycle,0.005
+age_group,65+,other,0.045
+area_type,Urban,car,0.78
+area_type,Urban,walk,0.12
+area_type,Urban,transit_bus,0.04
+area_type,Urban,subway_rail,0.03
+area_type,Urban,bicycle,0.015
+area_type,Urban,other,0.015
+area_type,Suburban,car,0.88
+area_type,Suburban,walk,0.06
+area_type,Suburban,transit_bus,0.02
+area_type,Suburban,subway_rail,0.01
+area_type,Suburban,bicycle,0.01
+area_type,Suburban,other,0.02
+area_type,Rural,car,0.92
+area_type,Rural,walk,0.04
+area_type,Rural,transit_bus,0.005
+area_type,Rural,bicycle,0.005
+area_type,Rural,other,0.03
+income,Under $25K,car,0.70
+income,Under $25K,walk,0.16
+income,Under $25K,transit_bus,0.06
+income,Under $25K,bicycle,0.02
+income,Under $25K,other,0.06
+income,$25K-$50K,car,0.82
+income,$25K-$50K,walk,0.10
+income,$25K-$50K,transit_bus,0.03
+income,$25K-$50K,bicycle,0.01
+income,$25K-$50K,other,0.04
+income,$50K-$100K,car,0.87
+income,$50K-$100K,walk,0.07
+income,$50K-$100K,transit_bus,0.02
+income,$50K-$100K,bicycle,0.01
+income,$50K-$100K,other,0.03
+income,Over $100K,car,0.86
+income,Over $100K,walk,0.06
+income,Over $100K,transit_bus,0.02
+income,Over $100K,subway_rail,0.03
+income,Over $100K,bicycle,0.01
+income,Over $100K,other,0.02
