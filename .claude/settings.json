@@ -6,10 +6,10 @@
         "hooks": [
           {
             "type": "agent",
-            "if": "Bash(git commit:*)",
-            "prompt": "You are an independent code reviewer. Run `git diff --cached` to see all staged changes. Review them thoroughly for:\n1. Bugs and logical errors\n2. Security vulnerabilities (XSS, injection, unsafe eval, etc.)\n3. Broken references (functions called that don't exist, missing imports, wrong variable names)\n4. Data integrity issues (mismatched IDs, wrong field names between modules)\n5. Dead code or obviously incomplete implementations\n\nIf you find critical issues, output JSON: {\"decision\": \"block\", \"reason\": \"<specific issues found>\"}\nIf the code is acceptable (minor style issues are OK to pass), output JSON: {\"decision\": \"allow\", \"reason\": \"<brief summary of what was reviewed>\"}",
+            "if": "Bash(git push:*)",
+            "prompt": "You are an independent code reviewer. This push is about to send code to the remote branch. Review the FULL changeset being pushed by running:\n\n1. `git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD --oneline` to see all commits being pushed\n2. `git diff origin/$(git rev-parse --abbrev-ref HEAD)..HEAD` to see the complete diff\n\nReview thoroughly for:\n1. Bugs and logical errors\n2. Security vulnerabilities (XSS, injection, unsafe eval, etc.)\n3. Broken references (functions called that don't exist, missing imports, wrong variable names)\n4. Data integrity issues (mismatched IDs, wrong field names between modules)\n5. Dead code or obviously incomplete implementations\n6. Files that reference other files that don't exist\n\nIf you find critical issues, output JSON: {\"decision\": \"block\", \"reason\": \"<specific issues found>\"}\nIf the code is acceptable (minor style issues are OK to pass), output JSON: {\"decision\": \"allow\", \"reason\": \"<brief summary of what was reviewed>\"}",
             "timeout": 180,
-            "statusMessage": "Independent code review in progress..."
+            "statusMessage": "Independent code review before push..."
           }
         ]
       }
