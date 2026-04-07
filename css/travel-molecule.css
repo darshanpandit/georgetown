@@ -747,10 +747,26 @@ kbd {
   border-color: rgba(255,255,255,0.4);
 }
 
+/* ── Sankey & Chord specific ── */
+.sankey-flow {
+  cursor: pointer;
+  transition: fill-opacity 0.2s;
+}
+
+.chord-ribbon {
+  cursor: pointer;
+  transition: fill-opacity 0.2s;
+}
+
+.chord-arc path {
+  cursor: pointer;
+}
+
 @media (max-width: 600px) {
   h1 { font-size: 1rem; }
   .subtitle { font-size: 0.65rem; }
-  .toggle-btn { padding: 6px 14px; font-size: 0.75rem; }
+  .toggle-bar { flex-wrap: wrap; justify-content: center; }
+  .toggle-btn { padding: 5px 10px; font-size: 0.7rem; }
   .legend { font-size: 0.6rem; bottom: 60px; }
   .filter-panel { width: 200px; right: -220px; }
   .demo-selector select { padding: 4px 8px; font-size: 0.7rem; }
