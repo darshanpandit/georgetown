@@ -25,7 +25,9 @@ var MODE_MOLECULE_DATA = {
     { source: "walk",    target: "bicycle", weight: 0.10 },
     { source: "bus",     target: "subway",  weight: 0.15 },
     { source: "bicycle", target: "subway",  weight: 0.06 },
-    { source: "taxi",    target: "subway",  weight: 0.05 }
+    { source: "taxi",    target: "subway",  weight: 0.05 },
+    { source: "other",   target: "car",     weight: 0.02 },
+    { source: "other",   target: "walk",    weight: 0.03 }
   ]
 };
 
