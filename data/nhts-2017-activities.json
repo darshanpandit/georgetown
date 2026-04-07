@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "title": "Activity Molecule",
+    "subtitle": "Daily activity chains — edges colored by dominant transport mode",
+    "source": "National Household Travel Survey (NHTS)",
+    "sourceUrl": "https://nhts.ornl.gov/",
+    "year": 2017,
+    "region": "United States (National)",
+    "methodology": "Sample data based on published NHTS 2017 trip purpose summaries and activity chain frequencies",
+    "sampleSize": 129696,
+    "lastUpdated": "2026-04-07",
+    "units": { "share": "proportion", "weight": "proportion" }
+  },
+  "nodes": [
+    { "id": "home", "label": "Home", "share": 0.28, "color": "#4a9eff", "description": "Home-based trip end", "category": "anchor" },
+    { "id": "work", "label": "Work", "share": 0.19, "color": "#ef4444", "description": "Commute and work-related trips", "category": "anchor" },
+    { "id": "shopping", "label": "Shopping", "share": 0.20, "color": "#f97316", "description": "Shopping and errands", "category": "discretionary" },
+    { "id": "social", "label": "Social", "share": 0.15, "color": "#34d399", "description": "Social and recreational activities", "category": "discretionary" },
+    { "id": "school", "label": "School", "share": 0.07, "color": "#a78bfa", "description": "School and education trips", "category": "anchor" },
+    { "id": "medical", "label": "Medical", "share": 0.04, "color": "#f472b6", "description": "Medical and dental visits", "category": "maintenance" },
+    { "id": "escort", "label": "Escort", "share": 0.07, "color": "#86efac", "description": "Picking up or dropping off passengers", "category": "maintenance" }
+  ],
+  "links": [
+    { "source": "home", "target": "work", "weight": 0.95, "mode": "car", "modeColor": "#4a9eff", "label": "Home to work commute" },
+    { "source": "home", "target": "shopping", "weight": 0.70, "mode": "car", "modeColor": "#4a9eff", "label": "Home to shopping" },
+    { "source": "home", "target": "school", "weight": 0.55, "mode": "car", "modeColor": "#4a9eff", "label": "Home to school" },
+    { "source": "home", "target": "social", "weight": 0.60, "mode": "car", "modeColor": "#4a9eff", "label": "Home to social" },
+    { "source": "home", "target": "medical", "weight": 0.30, "mode": "car", "modeColor": "#4a9eff", "label": "Home to medical" },
+    { "source": "home", "target": "escort", "weight": 0.45, "mode": "car", "modeColor": "#4a9eff", "label": "Home to escort" },
+    { "source": "work", "target": "shopping", "weight": 0.35, "mode": "car", "modeColor": "#4a9eff", "label": "Work to shopping" },
+    { "source": "work", "target": "social", "weight": 0.20, "mode": "car", "modeColor": "#4a9eff", "label": "Work to social" },
+    { "source": "work", "target": "escort", "weight": 0.15, "mode": "car", "modeColor": "#4a9eff", "label": "Work to escort" },
+    { "source": "work", "target": "home", "weight": 0.90, "mode": "subway", "modeColor": "#a78bfa", "label": "Work to home return" },
+    { "source": "shopping", "target": "home", "weight": 0.65, "mode": "walk", "modeColor": "#34d399", "label": "Shopping to home" },
+    { "source": "school", "target": "home", "weight": 0.40, "mode": "walk", "modeColor": "#34d399", "label": "School to home" },
+    { "source": "social", "target": "home", "weight": 0.50, "mode": "car", "modeColor": "#4a9eff", "label": "Social to home" },
+    { "source": "shopping", "target": "social", "weight": 0.20, "mode": "walk", "modeColor": "#34d399", "label": "Shopping to social" }
+  ]
+}
